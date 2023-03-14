@@ -17,21 +17,13 @@ fun reverse(a: int list): int list =
         reverse(tl a)@[hd a]
 
 (*Q3 pi*)
-fun pi(a: int, b: int, f: int -> int): int =
-    if a = b then
-        f(a)
-    else
-        f(a) * pi(a+1, b, f)
-
-
-(*Q4 pi*)
 fun pi(a: int, b: int, f: int->int): int =
     if a > b then
         1
     else
         pi(a+1, b, f) * f(a)
 
-(*Q3 digitis*)
+(*Q4 digitis*)
 fun digits_helper(a: int, l: int list): int list =
     if a=0 then
         l
