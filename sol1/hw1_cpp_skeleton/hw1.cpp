@@ -16,7 +16,19 @@ List<int> merge_lists(List<int> xs, List<int> ys) {
     //   xs.head()
     // and the remaining list can be obtained by
     //   xs.tail()
-
+    if (xs.isEmpty()) {
+        return ys;
+    } else if (ys.isEmpty()) {
+        return xs;
+    } else {
+        if (xs.head() < ys.head()) {
+            List<int> res(xs.head(), merge_lists(xs.tail(), ys));
+            return res;
+        } else {
+            List<int> res(ys.head(), merge_lists(xs, ys.tail()));
+            return res;
+        }
+    }
 }
 
 List<int> make_list(int xs[], int size) {
@@ -55,11 +67,17 @@ void test_merge_lists() {
 List<int> reverse_list(List<int> xs) {
     std::function<List<int>(List<int>,List<int>)> rev_aux;
     rev_aux = [&](List<int> _xs, List<int> _res) {
-      // TODO: Students need to implement this function.
+        // TODO: Students need to implement this function.
 
-      // Function rev_aux is a recursive and nested function.
-      // The function needs to be implemented as tail-recursive.
-      // Hint: res contains temporary (and final) result.
+        // Function rev_aux is a recursive and nested function.
+        // The function needs to be implemented as tail-recursive.
+        // Hint: res contains temporary (and final) result.
+
+        if (_xs.isEmpty()) {
+            return _res;
+        }else {
+            return rev_aux(_xs.tail(), _res.cons(_xs.head()));
+        }
     };
     List<int> res;
     return rev_aux(xs, res);
@@ -82,6 +100,7 @@ void test_reverse_lists() {
         std::cout << "----------------\n";
     }
 }
+
 
 int main() {
     test_merge_lists();
