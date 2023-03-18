@@ -11,10 +11,14 @@ fun merge(a: int list, b: int list): int list =
 
 (*Q2 reverse*)
 fun reverse(a: int list): int list =
-    if null a then
-        []
-    else
-        reverse(tl a)@[hd a]
+    let fun rev_helper(a: int list, b: int list): int list =
+        if null a then
+            b
+        else
+            rev_helper(tl a, (hd a)::b)
+    in
+        rev_helper(a, [])
+    end
 
 (*Q3 pi*)
 fun pi(a: int, b: int, f: int->int): int =

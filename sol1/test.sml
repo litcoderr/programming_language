@@ -20,3 +20,6 @@ val digits_result = digits(10);
 (* Question 5 Test*)
 val ap = additivePersistence(12349);
 val root = digitalRoot(12349);
+
+val ap = additivePersistence(3);
+val root = digitalRoot(3);
