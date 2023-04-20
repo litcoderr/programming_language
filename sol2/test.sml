@@ -37,8 +37,13 @@ val x = Nth(lazy_list, 0);
 val x = Nth(lazy_list, 1);
 val x = Nth(lazy_list, 3);
 val x = Nth(lazy_list, 4);
+val lazy_list = nullList;
+val x = Nth(lazy_list, 4);
 
 
 (* Question 4 Test*)
 val filtered = filterMultiples(seq(3, 9), 3);
 val filtered = firstN(filtered, 100);
+val p = firstN(primes(), 10);
+val p = firstN(primes(), 20);
+val p = Nth(primes(), 20);

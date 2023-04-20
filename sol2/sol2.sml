@@ -96,3 +96,12 @@ fun filterMultiples(lazyListVal: int lazyList, n: int): int lazyList =
         if (Int.mod(x, n) = 0) then filterMultiples(f(), n)
         else cons(x, fn()=>filterMultiples(f(), n))
 
+exception NullListException;
+fun primes(): int lazyList =
+    let fun next_list(cur_list: int lazyList): int lazyList=
+            case cur_list of
+            nullList => raise NullListException
+            | cons(x, f) => cons(x, fn()=>next_list(filterMultiples(cur_list, x)));
+    in
+        next_list(infSeq(2))
+    end

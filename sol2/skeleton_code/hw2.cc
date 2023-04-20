@@ -58,11 +58,14 @@ int eval_expr(Expr e) {
     //       That is, to fill out the lambda functions.
     return std::visit(overload {
         [](NUM& n) { 
-                },
+            return n.val;    
+        },
         [](box<struct PLUS>& p) { 
-                },
+            return eval_expr(p->e1) + eval_expr(p->e2);
+        },
         [](box<struct MINUS>& m) { 
-                },
+            return eval_expr(m->e1) - eval_expr(m->e2);
+        },
       }, e);
 }
 
@@ -72,19 +75,26 @@ bool eval(Formula f) {
 
     return std::visit(overload {
         [](TRUE& t) { 
+            return true;
                 },
         [](FALSE& f) { 
+            return false;
                 },
         [](box<struct NOT>& n) { 
                   return !eval(n->f);
                 },
         [](box<struct ANDALSO>& a) { 
+                    return eval(a->f1) && eval(a->f2);
                 },
         [](box<struct ORELSE>& a) { 
+                    return eval(a->f1) || eval(a->f2);
                 },
         [](box<struct IMPLY>& a) { 
+            if (eval(a->f1)) return eval(a->f2);
+            else return true;
                 },
         [](LESS& l) { 
+            return eval_expr(l.e1) < eval_expr(l.e2);
                 },
       }, f);
 }
