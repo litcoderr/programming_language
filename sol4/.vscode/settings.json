@@ -4,6 +4,8 @@
         "type_traits": "cpp",
         "algorithm": "cpp",
         "complex": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "variant": "cpp",
+        "ostream": "cpp"
     }
 }

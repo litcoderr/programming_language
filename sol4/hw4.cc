@@ -231,7 +231,8 @@ Expr eval_under_env(Expr e, std::map<string, Expr> env) {
             return e;
         },
         [&](box<struct IsAUnit>& isa) { 
-            if(is<AUnit>(isa->e)) {
+            Expr e = eval_under_env(isa->e, env);
+            if(is<AUnit>(e)) {
                 return Expr(Int(1));
             } else {
                 return Expr(Int(0));
@@ -284,6 +285,7 @@ Expr eval_under_env(Expr e, std::map<string, Expr> env) {
                 APair ap = *std::get<box<APair>>(e);
                 return ap.e1;
             } else {
+                std::cout << "error: " << toString(e) << std::endl;
                 throw std::runtime_error("[Fst] should be APair");
             }
         },
@@ -341,26 +343,23 @@ Expr IfAUnit(Expr e1, Expr e2, Expr e3) {
 }
 
 Expr MuplMap() {
-    // TODO
-
-    // pseudo code in ML:
-    // fn fun_arg =>
-    //    let fun muplrec(lst) =
-    //           if IsAUnit(lst)
-    //           then AUnit()
-    //           else APair(fun_arg(Fst(lst)),
-    //                      muplrec(Snd(lst)))             
-    //    in
-    //      muplrec /* UPDATED */
-    //    end
+    Expr eval_body = IfAUnit(Var("list"),
+        AUnit(),
+        IfAUnit(Snd(Var("list")),
+            APair(Call(Var("lambda"), Fst(Var("list"))), AUnit()),
+            APair(Call(Var("lambda"), Fst(Var("list"))), Call(Var("map_apply"), Snd(Var("list"))))
+        )
+    );
+    Fun map_body = Fun("map_apply", "list", eval_body); // lambda is already registered
+    Fun map = Fun("", "lambda", map_body);
+    return map;
 }
 
 Expr MuplMapAddN() {
-    // TODO
-    // pseudo code in ML:
-    // let val map = MuplMap() in
-    //    fn I => map(fn x => x+I)
-    // end
+    Expr lambda = Fun("", "x", Add(Var("x"), Var("n")));
+    Expr map = MuplMap();
+    Expr gen = Fun("", "n", Call(map, lambda));
+    return gen;
 }
 
 Expr ToMuplList(List<Expr> c_list) {
@@ -441,10 +440,9 @@ int main() {
     std::cout << toString(m_list) << std::endl;
     print(FromMuplList(m_list));
 
-    /*
-    Expr e8 = eval(Call(Call(MuplMapAddN(), Int(10)), makeIntList(0, 5)));
+    Expr test_list = makeIntList(0,10);
+    Expr e8 = eval(Call(Call(MuplMapAddN(), Int(10)), test_list));
     std::cout << toString(e8) << " = " << toString(e8) << std::endl;
-    */
 
     return 0;
 }
