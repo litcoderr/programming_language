@@ -227,35 +227,94 @@ Expr eval_under_env(Expr e, std::map<string, Expr> env) {
             throw std::runtime_error("Unexpected types for sub-expressions of Add");
           }
         },
-
-        // TODO: Students need to implement following functions.
-        [&](AUnit& au) { /* TODO */ },
+        [&](AUnit& au) {
+            return e;
+        },
         [&](box<struct IsAUnit>& isa) { 
-            /* TODO */
+            if(is<AUnit>(isa->e)) {
+                return Expr(Int(1));
+            } else {
+                return Expr(Int(0));
+            }
         },
         [&](box<struct IfGreater>& ifgt) {
-            /* TODO */
+            Expr lh = eval_under_env(ifgt->e1, env); // left-hand
+            Expr rh = eval_under_env(ifgt->e2, env); // right-hand
+            if(is<Int>(lh) && is<Int>(rh)) {
+                Int il = std::get<Int>(lh);
+                Int ir = std::get<Int>(rh);
+                if(il.val > ir.val) {
+                    Expr res = eval_under_env(ifgt->e3, env);
+                    return res;
+                } else {
+                    Expr res = eval_under_env(ifgt->e4, env);
+                    return res;
+                }
+            } else {
+                throw std::runtime_error("[IfGreater] e1 and e2 should be integer");
+            }
         }, 
         [&](box<struct MLet>& l) {
-            /* TODO */
+            // make new env that contains new e1
+            std::map<string, Expr> new_env = makeNewEnvFrom(env);
+            Expr e1 = eval_under_env(l->e1, env); 
+            new_env.insert_or_assign(l->varName, e1);
+            
+            // evaluate with new environment
+            Expr e2 = eval_under_env(l->e2, new_env);
+            return e2;
         },
         [&](box<struct Fun>& f) {
-            /* TODO */
+            Expr closure = Expr(Closure(env, *f));
+            return closure;
         },
         [&](box<struct Closure>& c) {
-            /* TODO */
+            return e;
         },
         [&](box<struct APair>& ap) {
-            /* TODO */
+            Expr e1 = eval_under_env(ap->e1, env);
+            Expr e2 = eval_under_env(ap->e2, env);
+
+            Expr res = Expr(APair(e1, e2));
+            return res;
         },
         [&](box<struct Fst>& fst) { 
-            /* TODO */
+            Expr e = eval_under_env(fst->e, env);
+            if(is<APair>(e)) {
+                APair ap = *std::get<box<APair>>(e);
+                return ap.e1;
+            } else {
+                throw std::runtime_error("[Fst] should be APair");
+            }
         },
         [&](box<struct Snd>& snd) { 
-            /* TODO */
+            Expr e = eval_under_env(snd->e, env);
+            if(is<APair>(e)) {
+                APair ap = *std::get<box<APair>>(e);
+                return ap.e2;
+            } else {
+                throw std::runtime_error("[Snd] should be APair");
+            }
         },
         [&](box<struct Call>& call) {
-            /* TODO */
+            Expr funExpr = eval_under_env(call->funExpr, env);
+            if(is<Closure>(funExpr)) {
+                Expr arg_val = eval_under_env(call->actual, env);
+                Closure cls = *std::get<box<Closure>>(funExpr);
+
+                // update closure's environment
+                std::map<string, Expr> new_env = makeNewEnvFrom(cls.env);
+                new_env.insert_or_assign(cls.f.argName, arg_val);
+                if(!cls.f.funName.empty()) {
+                    new_env.insert_or_assign(cls.f.funName, funExpr);
+                }
+
+                // evaluate closure
+                Expr res = eval_under_env(cls.f.body, new_env);
+                return res;
+            } else {
+                throw std::runtime_error("[Call] should be a closure");
+            }
         },
       }, e);
 }
@@ -304,6 +363,38 @@ Expr MuplMapAddN() {
     // end
 }
 
+Expr ToMuplList(List<Expr> c_list) {
+    if(c_list.isEmpty()) {
+        return AUnit();
+    } else {
+        Expr head = c_list.head();
+        List<Expr> tail = c_list.tail();
+
+        return APair(head, ToMuplList(tail));
+    }
+}
+
+List<Expr> FromMuplList(Expr m_list) {
+    if(is<APair>(m_list)) {
+        APair p = *std::get<box<APair>>(m_list);
+        if(is<AUnit>(p.e2)) {
+            return List(p.e1);
+        } else {
+            return FromMuplList(p.e2).cons(p.e1);
+        }
+    } else {
+        throw std::runtime_error("[FromMuplList] MUPL list should be type of APair");
+    }
+}
+
+void print(List<Expr> lst) {
+    forEach(lst, [](Expr v) 
+    {
+        std::cout << "(" << toString(v) << ") "; 
+    });
+    std::cout << std::endl;
+}
+
 int main() {
     // Test code for eval()
     std::map<string, Expr> env;
@@ -344,9 +435,16 @@ int main() {
     Expr e7 = makeIntList(0, 2);
     std::cout << toString(e7) << " = " << toString(e7) << std::endl;
 
+    List<Expr> c_list = makeList(Expr(Int(1)), Expr(Int(2)), Expr(Int(3)));
+    Expr m_list = ToMuplList(c_list);
+    print(c_list);
+    std::cout << toString(m_list) << std::endl;
+    print(FromMuplList(m_list));
 
+    /*
     Expr e8 = eval(Call(Call(MuplMapAddN(), Int(10)), makeIntList(0, 5)));
     std::cout << toString(e8) << " = " << toString(e8) << std::endl;
+    */
 
     return 0;
 }
