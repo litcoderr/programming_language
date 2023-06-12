@@ -1,3 +1,12 @@
-fun full_name {first =x, middle=y, last=3} = x;
+signature Animal =
+sig
+    val id: unit -> int
+end
 
-full_name({first=1,middle=2, last=3});
+structure Dog :> Animal =
+struct
+(* Unbounded. cannot be called from outside*)
+    fun add(a:int, b:int) = a+b;
+(* bounded. *)
+    fun id() = add(1,0);
+end
